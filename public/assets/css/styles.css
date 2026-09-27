@@ -275,6 +275,50 @@ button:disabled {
     text-align: center;
 }
 
+.section-divider {
+    margin: 55px 0 25px;
+    padding-top: 35px;
+    border-top: 2px solid var(--border);
+}
+
+.section-divider h1 {
+    margin: 8px 0;
+    font-family: Georgia, serif;
+    font-size: 42px;
+}
+
+.section-divider p {
+    max-width: 720px;
+    line-height: 1.6;
+}
+
+.full-width {
+    grid-column: 1 / -1;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 5px 9px;
+    border-radius: 20px;
+    background: var(--green-light);
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.copy-actions {
+    display: grid;
+    gap: 7px;
+    min-width: 110px;
+}
+
+.copy-actions form {
+    margin: 0;
+}
+
+.danger-button {
+    background: var(--danger);
+}
+
 @media (max-width: 700px) {
     .site-header {
         align-items: flex-start;

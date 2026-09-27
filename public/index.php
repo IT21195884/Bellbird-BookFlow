@@ -25,9 +25,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $action = $_POST['action'] ?? '';
 
-    /*
-     * STK-01: Create a new-book record.
-     */
     if ($action === 'create_new_book') {
         $errors = StockRepository::validateNewBook(
             $_POST
@@ -45,12 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $page = 'stock';
-    }
-
-    /*
-     * STK-02: Adjust the quantity of a new book.
-     */
-    elseif ($action === 'adjust_new_quantity') {
+    } elseif ($action === 'adjust_new_quantity') {
         $bookId = filter_var(
             $_POST['book_id'] ?? null,
             FILTER_VALIDATE_INT
@@ -78,8 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ) {
             Support::setMessage(
                 'error',
-                'The quantity could not be changed. '
-                . 'Stock cannot be lower than zero.'
+                'The quantity cannot be lower than zero.'
             );
         } else {
             Support::setMessage(
@@ -89,12 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         Support::redirect('stock');
-    }
-
-    /*
-     * STK-04: Update an existing new-book record.
-     */
-    elseif ($action === 'update_new_book') {
+    } elseif ($action === 'update_new_book') {
         $bookId = filter_var(
             $_POST['book_id'] ?? null,
             FILTER_VALIDATE_INT
@@ -129,6 +115,96 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $page = 'edit-new-book';
+    } elseif ($action === 'create_second_hand_copy') {
+        $errors =
+            StockRepository::validateSecondHandCopy(
+                $_POST
+            );
+
+        if ($errors === []) {
+            $stockRepository->createSecondHandCopy(
+                $_POST
+            );
+
+            Support::setMessage(
+                'success',
+                'Second-hand copy recorded successfully.'
+            );
+
+            Support::redirect('stock');
+        }
+
+        $page = 'stock';
+    } elseif ($action === 'update_second_hand_copy') {
+        $copyId = filter_var(
+            $_POST['copy_id'] ?? null,
+            FILTER_VALIDATE_INT
+        );
+
+        $errors =
+            StockRepository::validateSecondHandCopy(
+                $_POST
+            );
+
+        if ($copyId === false) {
+            $errors[] =
+                'The selected second-hand copy was invalid.';
+        }
+
+        if (
+            $errors === [] &&
+            $stockRepository->updateSecondHandCopy(
+                $copyId,
+                $_POST
+            )
+        ) {
+            Support::setMessage(
+                'success',
+                'Second-hand copy updated successfully.'
+            );
+
+            Support::redirect('stock');
+        }
+
+        if ($errors === []) {
+            $errors[] =
+                'The second-hand copy could not be updated.';
+        }
+
+        $page = 'edit-second-hand';
+    } elseif (
+        $action === 'mark_second_hand_unavailable'
+    ) {
+        $copyId = filter_var(
+            $_POST['copy_id'] ?? null,
+            FILTER_VALIDATE_INT
+        );
+
+        $status = (string) (
+            $_POST['status'] ?? ''
+        );
+
+        if (
+            $copyId === false ||
+            !$stockRepository->markSecondHandUnavailable(
+                $copyId,
+                $status
+            )
+        ) {
+            Support::setMessage(
+                'error',
+                'The second-hand copy could not be updated.'
+            );
+        } else {
+            Support::setMessage(
+                'success',
+                'Second-hand copy marked as '
+                . strtolower($status)
+                . '.'
+            );
+        }
+
+        Support::redirect('stock');
     }
 }
 
@@ -136,13 +212,13 @@ $allowedPages = [
     'dashboard',
     'stock',
     'edit-new-book',
+    'edit-second-hand',
     'customers',
     'orders',
 ];
 
 if (!in_array($page, $allowedPages, true)) {
     http_response_code(404);
-
     $page = '404';
 }
 
