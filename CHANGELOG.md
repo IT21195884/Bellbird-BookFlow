@@ -25,3 +25,10 @@ All notable changes to Bellbird BookFlow are recorded here.
 - Full and partial title or author searching.
 - Available-stock filtering by shop section for STK-07.
 - Clear no-results messages and search-result counts.
+- Customer contact records and preferences for ORD-01.
+- Requested-book order entry and searching for ORD-02 and ORD-03.
+- Customer-order lifecycle controls for ORD-04.
+- Outstanding-order filtering for ORD-05.
+- Order correction and cancellation for ORD-06.
+- Customer contact-attempt history for ORD-07.
+- Fourteen-day uncollected-order and store-credit processing for ORD-08.
