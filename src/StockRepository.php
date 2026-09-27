@@ -8,20 +8,16 @@ use PDO;
 
 final class StockRepository
 {
-    public function __construct(
-        private PDO $pdo
-    ) {
+    public function __construct(private PDO $pdo)
+    {
     }
 
     /*
-     * ========================================================
+     * =====================================================
      * NEW-BOOK FUNCTIONS
-     * ========================================================
+     * =====================================================
      */
 
-    /**
-     * Return all new-book records.
-     */
     public function getAllNewBooks(): array
     {
         $statement = $this->pdo->query(
@@ -33,9 +29,6 @@ final class StockRepository
         return $statement->fetchAll();
     }
 
-    /**
-     * Find one new-book record by its ID.
-     */
     public function findNewBook(int $id): ?array
     {
         $statement = $this->pdo->prepare(
@@ -50,16 +43,9 @@ final class StockRepository
 
         $book = $statement->fetch();
 
-        if ($book === false) {
-            return null;
-        }
-
-        return $book;
+        return $book === false ? null : $book;
     }
 
-    /**
-     * Create a new-book record.
-     */
     public function createNewBook(array $data): int
     {
         $statement = $this->pdo->prepare(
@@ -111,11 +97,6 @@ final class StockRepository
         return (int) $this->pdo->lastInsertId();
     }
 
-    /**
-     * Increase or decrease a new-book quantity.
-     *
-     * The quantity cannot become lower than zero.
-     */
     public function adjustNewBookQuantity(
         int $id,
         int $change
@@ -138,9 +119,6 @@ final class StockRepository
         return $statement->rowCount() === 1;
     }
 
-    /**
-     * Update an existing new-book record.
-     */
     public function updateNewBook(
         int $id,
         array $data
@@ -187,9 +165,6 @@ final class StockRepository
         ]);
     }
 
-    /**
-     * Validate new-book form information.
-     */
     public static function validateNewBook(
         array $data
     ): array {
@@ -259,14 +234,11 @@ final class StockRepository
     }
 
     /*
-     * ========================================================
+     * =====================================================
      * SECOND-HAND COPY FUNCTIONS
-     * ========================================================
+     * =====================================================
      */
 
-    /**
-     * Return every available second-hand copy.
-     */
     public function getAvailableSecondHandCopies(): array
     {
         $statement = $this->pdo->query(
@@ -279,9 +251,6 @@ final class StockRepository
         return $statement->fetchAll();
     }
 
-    /**
-     * Find one individual second-hand copy by its ID.
-     */
     public function findSecondHandCopy(
         int $id
     ): ?array {
@@ -297,16 +266,9 @@ final class StockRepository
 
         $copy = $statement->fetch();
 
-        if ($copy === false) {
-            return null;
-        }
-
-        return $copy;
+        return $copy === false ? null : $copy;
     }
 
-    /**
-     * Create one individual second-hand copy.
-     */
     public function createSecondHandCopy(
         array $data
     ): int {
@@ -340,7 +302,6 @@ final class StockRepository
 
         $statement->execute([
             'title' => trim($data['title']),
-
             'author' => trim($data['author']),
 
             'condition_grade' =>
@@ -379,9 +340,6 @@ final class StockRepository
         return (int) $this->pdo->lastInsertId();
     }
 
-    /**
-     * Update one individual second-hand copy.
-     */
     public function updateSecondHandCopy(
         int $id,
         array $data
@@ -406,7 +364,6 @@ final class StockRepository
 
         return $statement->execute([
             'title' => trim($data['title']),
-
             'author' => trim($data['author']),
 
             'condition_grade' =>
@@ -445,10 +402,6 @@ final class StockRepository
         ]);
     }
 
-    /**
-     * Mark an individual second-hand copy as sold
-     * or removed from available stock.
-     */
     public function markSecondHandUnavailable(
         int $id,
         string $status
@@ -486,9 +439,6 @@ final class StockRepository
         return $statement->rowCount() === 1;
     }
 
-    /**
-     * Validate second-hand copy information.
-     */
     public static function validateSecondHandCopy(
         array $data
     ): array {
@@ -563,29 +513,134 @@ final class StockRepository
     }
 
     /*
-     * ========================================================
-     * SHARED HELPER FUNCTIONS
-     * ========================================================
+     * =====================================================
+     * COMBINED STOCK SEARCH FUNCTIONS
+     * =====================================================
      */
 
     /**
-     * Convert an empty text field to null.
+     * Search new and second-hand available stock together.
      */
+    public function searchAvailableStock(
+        string $term = '',
+        string $section = ''
+    ): array {
+        $searchTerm = '%' . trim($term) . '%';
+
+        $sectionTerm = $section === ''
+            ? '%'
+            : $section;
+
+        $sql = "
+            SELECT
+                'New' AS stock_type,
+                id AS stock_id,
+                title,
+                author,
+                NULL AS condition_grade,
+                selling_price,
+                quantity AS available_quantity,
+                section,
+                shelf_location
+            FROM new_books
+            WHERE
+                quantity > 0
+                AND (
+                    title LIKE :new_title
+                    OR author LIKE :new_author
+                )
+                AND section LIKE :new_section
+
+            UNION ALL
+
+            SELECT
+                'Second-hand' AS stock_type,
+                id AS stock_id,
+                title,
+                author,
+                condition_grade,
+                selling_price,
+                1 AS available_quantity,
+                section,
+                shelf_location
+            FROM second_hand_copies
+            WHERE
+                status = 'Available'
+                AND (
+                    title LIKE :used_title
+                    OR author LIKE :used_author
+                )
+                AND section LIKE :used_section
+
+            ORDER BY title, author, stock_type
+        ";
+
+        $statement = $this->pdo->prepare($sql);
+
+        $statement->execute([
+            'new_title' => $searchTerm,
+            'new_author' => $searchTerm,
+            'new_section' => $sectionTerm,
+
+            'used_title' => $searchTerm,
+            'used_author' => $searchTerm,
+            'used_section' => $sectionTerm,
+        ]);
+
+        return $statement->fetchAll();
+    }
+
+    /**
+     * Return the shop sections used by available stock.
+     */
+    public function getStockSections(): array
+    {
+        $statement = $this->pdo->query(
+            "SELECT section
+             FROM new_books
+             WHERE quantity > 0
+
+             UNION
+
+             SELECT section
+             FROM second_hand_copies
+             WHERE status = 'Available'
+
+             ORDER BY section"
+        );
+
+        $sections = $statement->fetchAll(
+            PDO::FETCH_COLUMN
+        );
+
+        return array_values(
+            array_filter(
+                $sections,
+                static function (
+                    mixed $section
+                ): bool {
+                    return trim(
+                        (string) $section
+                    ) !== '';
+                }
+            )
+        );
+    }
+
+    /*
+     * =====================================================
+     * SHARED HELPER FUNCTIONS
+     * =====================================================
+     */
+
     private static function nullableText(
         mixed $value
     ): ?string {
         $value = trim((string) $value);
 
-        if ($value === '') {
-            return null;
-        }
-
-        return $value;
+        return $value === '' ? null : $value;
     }
 
-    /**
-     * Convert an empty number field to null.
-     */
     private static function nullableNumber(
         mixed $value
     ): ?float {

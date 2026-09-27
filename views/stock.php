@@ -7,6 +7,23 @@ $newBooks = $stockRepository->getAllNewBooks();
 $secondHandCopies =
     $stockRepository->getAvailableSecondHandCopies();
 
+$searchTerm = trim(
+    (string) ($_GET['q'] ?? '')
+);
+
+$selectedSection = trim(
+    (string) ($_GET['section'] ?? '')
+);
+
+$searchResults =
+    $stockRepository->searchAvailableStock(
+        $searchTerm,
+        $selectedSection
+    );
+
+$stockSections =
+    $stockRepository->getStockSections();
+
 $submittedAction = $_POST['action'] ?? '';
 
 $newBookValue = function (
@@ -26,7 +43,10 @@ $secondHandValue = function (
     string $field,
     string $default = ''
 ) use ($submittedAction): string {
-    if ($submittedAction !== 'create_second_hand_copy') {
+    if (
+        $submittedAction !==
+        'create_second_hand_copy'
+    ) {
         return Support::escape($default);
     }
 
@@ -35,22 +55,218 @@ $secondHandValue = function (
     );
 };
 
+$conditions = [
+    'As New',
+    'Very Good',
+    'Good',
+    'Fair',
+    'Reading Copy',
+];
+
 ?>
 
-<!-- ======================================================
-     NEW-BOOK STOCK
-     ====================================================== -->
+<!-- PAGE HEADING -->
 
 <section class="page-heading">
     <p class="eyebrow">Stock management</p>
 
-    <h1>New-book stock</h1>
+    <h1>Book stock</h1>
 
     <p>
-        Record new titles, maintain quantities and update
-        existing new-book information.
+        Search, record and maintain new books and individual
+        second-hand copies.
     </p>
 </section>
+
+<!-- COMBINED STOCK SEARCH: STK-06 AND STK-07 -->
+
+<section class="panel search-panel">
+    <div class="search-heading">
+        <div>
+            <h2>Search all available stock</h2>
+
+            <p class="help-text">
+                Search new books and individual second-hand
+                copies together using a title or author.
+            </p>
+        </div>
+
+        <span class="result-count">
+            <?= count($searchResults) ?>
+
+            result<?= count($searchResults) === 1
+                ? ''
+                : 's'
+            ?>
+        </span>
+    </div>
+
+    <form method="get">
+        <input
+            type="hidden"
+            name="page"
+            value="stock"
+        >
+
+        <div class="search-grid">
+            <label>
+                Title or author
+                <input
+                    type="search"
+                    name="q"
+                    placeholder="Enter a full or partial title or author"
+                    value="<?= Support::escape(
+                        $searchTerm
+                    ) ?>"
+                >
+            </label>
+
+            <label>
+                Shop section
+                <select name="section">
+                    <option value="">
+                        All sections
+                    </option>
+
+                    <?php foreach (
+                        $stockSections as $section
+                    ): ?>
+                        <option
+                            value="<?= Support::escape(
+                                $section
+                            ) ?>"
+                            <?=
+                            $selectedSection === $section
+                                ? 'selected'
+                                : ''
+                            ?>
+                        >
+                            <?= Support::escape(
+                                $section
+                            ) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </label>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit">
+                Search stock
+            </button>
+
+            <a
+                class="button button-secondary"
+                href="index.php?page=stock"
+            >
+                Clear search
+            </a>
+        </div>
+    </form>
+
+    <?php if ($searchResults === []): ?>
+        <p class="empty-state">
+            No available stock matched the search.
+        </p>
+    <?php else: ?>
+        <div class="table-container search-results">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Stock type</th>
+                        <th>Title and author</th>
+                        <th>Condition</th>
+                        <th>Price</th>
+                        <th>Available</th>
+                        <th>Section and location</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <?php foreach (
+                        $searchResults as $result
+                    ): ?>
+                        <tr>
+                            <td>
+                                <span
+                                    class="stock-type stock-type-<?=
+                                    $result['stock_type']
+                                        === 'New'
+                                        ? 'new'
+                                        : 'used'
+                                    ?>"
+                                >
+                                    <?= Support::escape(
+                                        $result['stock_type']
+                                    ) ?>
+                                </span>
+                            </td>
+
+                            <td>
+                                <strong>
+                                    <?= Support::escape(
+                                        $result['title']
+                                    ) ?>
+                                </strong>
+
+                                <br>
+
+                                <span class="secondary-text">
+                                    <?= Support::escape(
+                                        $result['author']
+                                    ) ?>
+                                </span>
+                            </td>
+
+                            <td>
+                                <?= Support::escape(
+                                    $result[
+                                        'condition_grade'
+                                    ] ?? '—'
+                                ) ?>
+                            </td>
+
+                            <td>
+                                $<?= number_format(
+                                    (float) $result[
+                                        'selling_price'
+                                    ],
+                                    2
+                                ) ?>
+                            </td>
+
+                            <td>
+                                <?= Support::escape(
+                                    $result[
+                                        'available_quantity'
+                                    ]
+                                ) ?>
+                            </td>
+
+                            <td>
+                                <?= Support::escape(
+                                    $result['section']
+                                ) ?>
+
+                                <br>
+
+                                <span class="secondary-text">
+                                    <?= Support::escape(
+                                        $result[
+                                            'shelf_location'
+                                        ]
+                                    ) ?>
+                                </span>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    <?php endif; ?>
+</section>
+
+<!-- VALIDATION ERRORS -->
 
 <?php if ($errors !== []): ?>
     <div class="message message-error">
@@ -65,6 +281,19 @@ $secondHandValue = function (
         </ul>
     </div>
 <?php endif; ?>
+
+<!-- NEW-BOOK ENTRY -->
+
+<section class="section-divider">
+    <p class="eyebrow">New-book management</p>
+
+    <h1>New-book stock</h1>
+
+    <p>
+        Identical new books use one record with an available
+        quantity.
+    </p>
+</section>
 
 <section class="panel">
     <h2>Add a new-book title</h2>
@@ -193,6 +422,8 @@ $secondHandValue = function (
         </div>
     </form>
 </section>
+
+<!-- NEW-BOOK TABLE -->
 
 <section class="panel">
     <h2>Recorded new books</h2>
@@ -339,9 +570,7 @@ $secondHandValue = function (
     <?php endif; ?>
 </section>
 
-<!-- ======================================================
-     SECOND-HAND STOCK
-     ====================================================== -->
+<!-- SECOND-HAND ENTRY -->
 
 <section class="section-divider">
     <p class="eyebrow">Individual copy management</p>
@@ -408,28 +637,23 @@ $secondHandValue = function (
                         Select condition
                     </option>
 
-                    <?php
-                    $conditions = [
-                        'As New',
-                        'Very Good',
-                        'Good',
-                        'Fair',
-                        'Reading Copy',
-                    ];
-
-                    foreach ($conditions as $condition):
-                    ?>
+                    <?php foreach (
+                        $conditions as $condition
+                    ): ?>
                         <option
                             value="<?= Support::escape(
                                 $condition
                             ) ?>"
                             <?=
                             (
-                                $submittedAction
-                                === 'create_second_hand_copy'
+                                $submittedAction ===
+                                'create_second_hand_copy'
                                 &&
-                                ($_POST['condition_grade'] ?? '')
-                                === $condition
+                                (
+                                    $_POST[
+                                        'condition_grade'
+                                    ] ?? ''
+                                ) === $condition
                             )
                                 ? 'selected'
                                 : ''
@@ -548,6 +772,8 @@ $secondHandValue = function (
         </div>
     </form>
 </section>
+
+<!-- SECOND-HAND TABLE -->
 
 <section class="panel">
     <h2>Available second-hand copies</h2>
