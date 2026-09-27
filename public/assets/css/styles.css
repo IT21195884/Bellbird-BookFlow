@@ -152,6 +152,129 @@ button {
     text-align: center;
 }
 
+.page-heading {
+    margin-bottom: 25px;
+}
+
+.page-heading h1 {
+    font-size: 42px;
+}
+
+.page-heading p {
+    max-width: 700px;
+    line-height: 1.6;
+}
+
+.help-text,
+.secondary-text {
+    color: var(--muted);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+}
+
+label {
+    display: grid;
+    gap: 7px;
+    font-weight: bold;
+}
+
+input,
+select,
+textarea {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid #aeb7b1;
+    border-radius: 7px;
+    background: var(--white);
+    font: inherit;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--green);
+    outline: 2px solid var(--green-light);
+}
+
+.form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 22px;
+}
+
+.button-secondary {
+    color: var(--text);
+    background: var(--green-light);
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 13px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+}
+
+th {
+    background: var(--green-light);
+}
+
+.quantity {
+    display: inline-block;
+    min-width: 35px;
+    padding: 5px 8px;
+    border-radius: 20px;
+    background: var(--green-light);
+    font-weight: bold;
+    text-align: center;
+}
+
+.stock-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.stock-actions form {
+    display: flex;
+    gap: 5px;
+}
+
+.small-button {
+    padding: 7px 10px;
+}
+
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+.text-link {
+    font-weight: bold;
+}
+
+.empty-state {
+    padding: 35px;
+    color: var(--muted);
+    text-align: center;
+}
+
 @media (max-width: 700px) {
     .site-header {
         align-items: flex-start;
