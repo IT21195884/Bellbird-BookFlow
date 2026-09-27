@@ -21,3 +21,7 @@ All notable changes to Bellbird BookFlow are recorded here.
 - Sold and unavailable stock processing for STK-05.
 - Second-hand intake and purchase details for STK-08.
 - Confirmation messages for destructive stock actions.
+- Combined new and second-hand stock search for STK-06.
+- Full and partial title or author searching.
+- Available-stock filtering by shop section for STK-07.
+- Clear no-results messages and search-result counts.

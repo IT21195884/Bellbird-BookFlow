@@ -319,10 +319,69 @@ button:disabled {
     background: var(--danger);
 }
 
+.search-panel {
+    border-top: 4px solid var(--gold);
+}
+
+.search-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.search-heading h2 {
+    margin-top: 0;
+}
+
+.search-grid {
+    display: grid;
+    grid-template-columns:
+        minmax(250px, 2fr)
+        minmax(200px, 1fr);
+    gap: 18px;
+}
+
+.result-count {
+    display: inline-block;
+    padding: 7px 11px;
+    border-radius: 20px;
+    background: var(--green-light);
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.search-results {
+    margin-top: 25px;
+}
+
+.stock-type {
+    display: inline-block;
+    padding: 5px 9px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.stock-type-new {
+    color: #17462f;
+    background: #dff2e7;
+}
+
+.stock-type-used {
+    color: #684312;
+    background: #f8ead1;
+}
+
 @media (max-width: 700px) {
     .site-header {
         align-items: flex-start;
         flex-direction: column;
+    }
+
+        .search-grid {
+        grid-template-columns: 1fr;
     }
 
     .card-grid {
