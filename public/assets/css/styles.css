@@ -1,0 +1,164 @@
+:root {
+    --green: #183f2d;
+    --green-light: #e8f0eb;
+    --gold: #d39a42;
+    --background: #f8f6f0;
+    --white: #ffffff;
+    --text: #202923;
+    --muted: #66716a;
+    --border: #d7dcd8;
+    --danger: #a33b34;
+    --success: #2e6a4d;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    color: var(--text);
+    background: var(--background);
+    font-family: Arial, sans-serif;
+}
+
+a {
+    color: var(--green);
+}
+
+.site-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 30px;
+    padding: 18px 6%;
+    background: var(--green);
+}
+
+.brand {
+    color: var(--white);
+    font-size: 22px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+nav a {
+    color: var(--white);
+    text-decoration: none;
+}
+
+.container {
+    width: min(1100px, 90%);
+    margin: auto;
+    padding: 45px 0 80px;
+}
+
+.hero {
+    max-width: 760px;
+    padding: 30px 0 55px;
+}
+
+.hero h1,
+.page-heading h1 {
+    margin: 10px 0;
+    font-family: Georgia, serif;
+}
+
+.hero h1 {
+    font-size: clamp(40px, 7vw, 70px);
+    line-height: 1;
+}
+
+.hero p {
+    line-height: 1.7;
+}
+
+.eyebrow {
+    color: var(--success);
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+}
+
+.card,
+.panel {
+    padding: 25px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--white);
+}
+
+.card {
+    text-decoration: none;
+}
+
+.card:hover {
+    border-color: var(--gold);
+    transform: translateY(-2px);
+}
+
+.panel {
+    margin: 20px 0;
+}
+
+.button,
+button {
+    display: inline-block;
+    padding: 11px 16px;
+    border: 0;
+    border-radius: 7px;
+    color: var(--white);
+    background: var(--green);
+    font: inherit;
+    font-weight: bold;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.message {
+    padding: 14px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+}
+
+.message-success {
+    color: #17462f;
+    background: #e4f3ea;
+}
+
+.message-error {
+    color: #73241f;
+    background: #f9e6e4;
+}
+
+.site-footer {
+    padding: 25px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    text-align: center;
+}
+
+@media (max-width: 700px) {
+    .site-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .card-grid {
+        grid-template-columns: 1fr;
+    }
+}
