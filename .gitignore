@@ -1,0 +1,9 @@
+.env
+/database/*.sqlite
+/database/*.sqlite-shm
+/database/*.sqlite-wal
+/vendor/
+/.vscode/
+/.idea/
+*.log
+.DS_Store
