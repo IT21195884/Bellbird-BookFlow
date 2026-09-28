@@ -1,9 +1,14 @@
+# Private environment configuration
 .env
-/database/*.sqlite
-/database/*.sqlite-shm
-/database/*.sqlite-wal
-/vendor/
-/.vscode/
-/.idea/
-*.log
+.env.*
+!.env.example
+!.env.production.example
+
+# SQLite operational databases
+database/*.sqlite
+database/*.sqlite-shm
+database/*.sqlite-wal
+
+# macOS system files
 .DS_Store
+**/.DS_Store
