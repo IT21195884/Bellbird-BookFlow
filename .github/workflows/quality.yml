@@ -1,0 +1,43 @@
+name: Bellbird BookFlow Quality Check
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - "feature/**"
+      - "release/**"
+  pull_request:
+    branches:
+      - main
+      - develop
+
+permissions:
+  contents: read
+
+jobs:
+  quality-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download repository
+        uses: actions/checkout@v4
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: pdo_sqlite, sqlite3
+          coverage: none
+
+      - name: Create environment file
+        run: cp .env.example .env
+
+      - name: Check PHP syntax
+        run: php scripts/quality_check.php
+
+      - name: Initialise test database
+        run: php scripts/init_db.php
+
+      - name: Confirm database exists
+        run: test -f database/bellbird.sqlite
