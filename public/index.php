@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require dirname(__DIR__) . '/bootstrap.php';
 
+use Bellbird\AuthRepository;
 use Bellbird\CustomerOrderRepository;
 use Bellbird\Database;
 use Bellbird\StockRepository;
@@ -16,24 +17,104 @@ Database::initialise(
     dirname(__DIR__) . '/database/schema.sql'
 );
 
+$authRepository = new AuthRepository($pdo);
 $stockRepository = new StockRepository($pdo);
-
 $customerOrderRepository =
     new CustomerOrderRepository($pdo);
 
-$page = $_GET['page'] ?? 'dashboard';
+$page = (string) ($_GET['page'] ?? 'dashboard');
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     Support::verifyCsrf();
 
-    $action = $_POST['action'] ?? '';
+    $action = (string) ($_POST['action'] ?? '');
+
+    /*
+     * ADMINISTRATOR AUTHENTICATION ACTIONS
+     */
+
+    if ($action === 'register_administrator') {
+        $errors =
+            AuthRepository::validateRegistration($_POST);
+
+        $email = strtolower(
+            trim((string) ($_POST['email'] ?? ''))
+        );
+
+        if (
+            $email !== '' &&
+            $authRepository->emailExists($email)
+        ) {
+            $errors[] =
+                'An administrator already uses this email address.';
+        }
+
+        if ($errors === []) {
+            $authRepository->createAdministrator($_POST);
+
+            Support::setMessage(
+                'success',
+                'Administrator account created. You can now log in.'
+            );
+
+            Support::redirect('login');
+        }
+
+        $page = 'register';
+    } elseif ($action === 'login_administrator') {
+        $errors = AuthRepository::validateLogin($_POST);
+
+        if ($errors === []) {
+            $administrator =
+                $authRepository->authenticate(
+                    (string) ($_POST['email'] ?? ''),
+                    (string) ($_POST['password'] ?? '')
+                );
+
+            if ($administrator !== null) {
+                Support::login($administrator);
+
+                Support::setMessage(
+                    'success',
+                    'You have logged in successfully.'
+                );
+
+                Support::redirect('dashboard');
+            }
+
+            $errors[] =
+                'The email address or password is incorrect.';
+        }
+
+        $page = 'login';
+    } elseif ($action === 'logout_administrator') {
+        Support::logout();
+
+        Support::setMessage(
+            'success',
+            'You have logged out successfully.'
+        );
+
+        Support::redirect('login');
+    } elseif (!Support::isAuthenticated()) {
+        /*
+         * Prevent unauthenticated users from performing
+         * stock, customer or order actions.
+         */
+        Support::setMessage(
+            'error',
+            'Please log in to access that function.'
+        );
+
+        Support::redirect('login');
+    }
 
     /*
      * STOCK ACTIONS
      */
 
-    if ($action === 'create_new_book') {
+    elseif ($action === 'create_new_book') {
         $errors =
             StockRepository::validateNewBook($_POST);
 
@@ -367,8 +448,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         Support::redirect('orders');
+    } else {
+        Support::setMessage(
+            'error',
+            'The requested action was not recognised.'
+        );
+
+        Support::redirect(
+            Support::isAuthenticated()
+                ? 'dashboard'
+                : 'login'
+        );
     }
 }
+
+/*
+ * PAGE ROUTING
+ */
 
 $allowedPages = [
     'dashboard',
@@ -377,11 +473,46 @@ $allowedPages = [
     'edit-second-hand',
     'customers',
     'orders',
+    'login',
+    'register',
+];
+
+$publicPages = [
+    'login',
+    'register',
 ];
 
 if (!in_array($page, $allowedPages, true)) {
     http_response_code(404);
     $page = '404';
+}
+
+/*
+ * Redirect visitors to login when they try to open
+ * a protected administration page.
+ */
+if (
+    $page !== '404' &&
+    !in_array($page, $publicPages, true) &&
+    !Support::isAuthenticated()
+) {
+    Support::setMessage(
+        'error',
+        'Please log in to access the administration system.'
+    );
+
+    Support::redirect('login');
+}
+
+/*
+ * Logged-in administrators do not need to see
+ * login or registration pages.
+ */
+if (
+    in_array($page, $publicPages, true) &&
+    Support::isAuthenticated()
+) {
+    Support::redirect('dashboard');
 }
 
 $message = Support::getMessage();
