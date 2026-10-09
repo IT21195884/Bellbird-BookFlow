@@ -6,8 +6,9 @@ namespace Bellbird;
 
 final class Support
 {
-    public static function escape(mixed $value): string
-    {
+    public static function escape(
+        mixed $value
+    ): string {
         return htmlspecialchars(
             (string) $value,
             ENT_QUOTES,
@@ -28,7 +29,8 @@ final class Support
 
     public static function verifyCsrf(): void
     {
-        $submittedToken = $_POST['csrf_token'] ?? '';
+        $submittedToken =
+            $_POST['csrf_token'] ?? '';
 
         if (
             !is_string($submittedToken) ||
@@ -58,19 +60,77 @@ final class Support
 
     public static function getMessage(): ?array
     {
-        $message = $_SESSION['message'] ?? null;
+        $message =
+            $_SESSION['message'] ?? null;
 
         unset($_SESSION['message']);
 
-        return is_array($message) ? $message : null;
+        return is_array($message)
+            ? $message
+            : null;
     }
 
-    public static function redirect(string $page): never
-    {
+    public static function redirect(
+        string $page
+    ): never {
         header(
-            'Location: index.php?page=' . urlencode($page)
+            'Location: index.php?page='
+            . urlencode($page)
         );
 
         exit;
+    }
+
+    public static function login(
+        array $administrator
+    ): void {
+        session_regenerate_id(true);
+
+        $_SESSION['administrator'] = [
+            'id' => (int) $administrator['id'],
+            'name' => (string) $administrator['name'],
+            'email' => (string) $administrator['email'],
+        ];
+    }
+
+    public static function logout(): void
+    {
+        unset(
+            $_SESSION['administrator'],
+            $_SESSION['csrf_token']
+        );
+
+        session_regenerate_id(true);
+    }
+
+    public static function isAuthenticated(): bool
+    {
+        return isset(
+            $_SESSION['administrator']['id']
+        );
+    }
+
+    public static function administrator(): ?array
+    {
+        $administrator =
+            $_SESSION['administrator'] ?? null;
+
+        return is_array($administrator)
+            ? $administrator
+            : null;
+    }
+
+    public static function requireAuthentication(): void
+    {
+        if (self::isAuthenticated()) {
+            return;
+        }
+
+        self::setMessage(
+            'error',
+            'Please log in to access that page.'
+        );
+
+        self::redirect('login');
     }
 }

@@ -459,3 +459,34 @@ button:disabled {
         grid-template-columns: 1fr;
     }
 }
+
+.auth-heading,
+.auth-panel {
+    max-width: 680px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.auth-panel {
+    border-top: 4px solid var(--gold);
+}
+
+.nav-user {
+    color: #f5d7a3;
+    font-weight: bold;
+}
+
+.logout-form {
+    margin: 0;
+}
+
+.nav-button {
+    padding: 0;
+    color: var(--white);
+    background: transparent;
+    font-weight: normal;
+}
+
+.nav-button:hover {
+    color: #f5d7a3;
+}

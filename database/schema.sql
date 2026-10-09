@@ -1,5 +1,23 @@
 PRAGMA foreign_keys = ON;
 
+-- New table addition for the administrator authentication
+
+CREATE TABLE IF NOT EXISTS administrators (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'Active' CHECK (
+        status IN ('Active', 'Disabled')
+    ),
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_administrator_email
+ON administrators(email);
+
+
 CREATE TABLE IF NOT EXISTS new_books (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
