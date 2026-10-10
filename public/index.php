@@ -5,6 +5,7 @@ declare(strict_types=1);
 require dirname(__DIR__) . '/bootstrap.php';
 
 use Bellbird\AuthRepository;
+use Bellbird\Cart;
 use Bellbird\CustomerOrderRepository;
 use Bellbird\Database;
 use Bellbird\GalleryRepository;
@@ -20,6 +21,7 @@ Database::initialise(
 
 $authRepository = new AuthRepository($pdo);
 $galleryRepository = new GalleryRepository($pdo);
+$cart = new Cart();
 $stockRepository = new StockRepository($pdo);
 
 $customerOrderRepository =
@@ -34,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = (string) ($_POST['action'] ?? '');
 
     /*
-     * ADMINISTRATOR AUTHENTICATION ACTIONS
+     * ADMINISTRATOR AUTHENTICATION
      */
 
     if ($action === 'register_administrator') {
@@ -100,11 +102,129 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         );
 
         Support::redirect('login');
-    } elseif (!Support::isAuthenticated()) {
-        /*
-         * Stop unauthenticated users from performing
-         * stock, customer or order management actions.
-         */
+    }
+
+    /*
+     * PUBLIC SHOPPING CART ACTIONS
+     */
+
+    elseif ($action === 'add_to_cart') {
+        $bookId = filter_var(
+            $_POST['book_id'] ?? null,
+            FILTER_VALIDATE_INT
+        );
+
+        $quantity = filter_var(
+            $_POST['quantity'] ?? 1,
+            FILTER_VALIDATE_INT
+        );
+
+        $stockType = (string) (
+            $_POST['stock_type'] ?? ''
+        );
+
+        if (
+            $bookId === false ||
+            $bookId < 1 ||
+            $quantity === false ||
+            $quantity < 1
+        ) {
+            Support::setMessage(
+                'error',
+                'The selected book or quantity was invalid.'
+            );
+
+            Support::redirect('gallery');
+        }
+
+        $book =
+            $galleryRepository->findAvailableBook(
+                $stockType,
+                $bookId
+            );
+
+        if ($book === null) {
+            Support::setMessage(
+                'error',
+                'That book is no longer available.'
+            );
+        } else {
+            $cart->add($book, $quantity);
+
+            Support::setMessage(
+                'success',
+                'The book was added to your cart.'
+            );
+        }
+
+        Support::redirect('gallery');
+    } elseif ($action === 'update_cart') {
+        $quantities =
+            $_POST['quantities'] ?? [];
+
+        if (is_array($quantities)) {
+            foreach (
+                $quantities as $key => $quantity
+            ) {
+                $validatedQuantity = filter_var(
+                    $quantity,
+                    FILTER_VALIDATE_INT
+                );
+
+                if ($validatedQuantity === false) {
+                    continue;
+                }
+
+                $cart->update(
+                    (string) $key,
+                    $validatedQuantity,
+                    $galleryRepository
+                );
+            }
+        }
+
+        Support::setMessage(
+            'success',
+            'Your cart was updated.'
+        );
+
+        Support::redirect('cart');
+    } elseif ($action === 'remove_from_cart') {
+        $cartKey = (string) (
+            $_POST['cart_key'] ?? ''
+        );
+
+        if ($cartKey === '') {
+            Support::setMessage(
+                'error',
+                'The selected cart item was invalid.'
+            );
+        } else {
+            $cart->remove($cartKey);
+
+            Support::setMessage(
+                'success',
+                'The book was removed from your cart.'
+            );
+        }
+
+        Support::redirect('cart');
+    } elseif ($action === 'clear_cart') {
+        $cart->clear();
+
+        Support::setMessage(
+            'success',
+            'Your cart was cleared.'
+        );
+
+        Support::redirect('cart');
+    }
+
+    /*
+     * PROTECT MANAGEMENT ACTIONS
+     */
+
+    elseif (!Support::isAuthenticated()) {
         Support::setMessage(
             'error',
             'Please log in to access that function.'
@@ -175,7 +295,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             StockRepository::validateNewBook($_POST);
 
         if ($bookId === false) {
-            $errors[] = 'The selected book was invalid.';
+            $errors[] =
+                'The selected book was invalid.';
         }
 
         if (
@@ -230,7 +351,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
 
         if ($copyId === false) {
-            $errors[] = 'The selected copy was invalid.';
+            $errors[] =
+                'The selected copy was invalid.';
         }
 
         if (
@@ -338,7 +460,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
 
         if ($orderId === false) {
-            $errors[] = 'The selected order was invalid.';
+            $errors[] =
+                'The selected order was invalid.';
         }
 
         if (
@@ -460,7 +583,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         Support::redirect(
             Support::isAuthenticated()
                 ? 'dashboard'
-                : 'login'
+                : 'gallery'
         );
     }
 }
@@ -477,22 +600,24 @@ $allowedPages = [
     'customers',
     'orders',
     'gallery',
+    'cart',
     'login',
     'register',
 ];
 
 /*
- * These pages can be accessed without administrator login.
+ * These pages do not require administrator login.
  */
 $publicPages = [
     'gallery',
+    'cart',
     'login',
     'register',
 ];
 
 /*
- * Logged-in administrators should be redirected away
- * from only the login and registration pages.
+ * Logged-in administrators are redirected away
+ * from login and registration pages only.
  */
 $authenticationPages = [
     'login',
@@ -505,7 +630,7 @@ if (!in_array($page, $allowedPages, true)) {
 }
 
 /*
- * Protect administration pages.
+ * Protect internal management pages.
  */
 if (
     $page !== '404' &&
@@ -521,8 +646,8 @@ if (
 }
 
 /*
- * Logged-in administrators can access the gallery,
- * but do not need login or registration pages.
+ * Logged-in administrators can access the gallery
+ * and cart, but do not need authentication pages.
  */
 if (
     in_array($page, $authenticationPages, true) &&

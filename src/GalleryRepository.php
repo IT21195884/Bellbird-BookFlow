@@ -67,7 +67,8 @@ final class GalleryRepository
                 )
             ';
 
-            $parameters['search'] = '%' . $search . '%';
+            $parameters['search'] =
+                '%' . $search . '%';
         }
 
         if ($section !== '') {
@@ -86,9 +87,12 @@ final class GalleryRepository
         }
 
         if ($maximumPrice !== null) {
-            $sql .= ' AND selling_price <= :maximum_price';
+            $sql .= '
+                AND selling_price <= :maximum_price
+            ';
 
-            $parameters['maximum_price'] = $maximumPrice;
+            $parameters['maximum_price'] =
+                $maximumPrice;
         }
 
         $sql .= '
@@ -102,7 +106,63 @@ final class GalleryRepository
     }
 
     /**
-     * Return a list of available book sections.
+     * Find one currently available book.
+     */
+    public function findAvailableBook(
+        string $stockType,
+        int $id
+    ): ?array {
+        if ($stockType === 'New') {
+            $statement = $this->pdo->prepare(
+                '
+                SELECT
+                    id,
+                    "New" AS stock_type,
+                    title,
+                    author,
+                    isbn,
+                    NULL AS condition_grade,
+                    selling_price,
+                    quantity,
+                    section
+                FROM new_books
+                WHERE id = :id
+                  AND quantity > 0
+                '
+            );
+        } elseif ($stockType === 'Second-hand') {
+            $statement = $this->pdo->prepare(
+                '
+                SELECT
+                    id,
+                    "Second-hand" AS stock_type,
+                    title,
+                    author,
+                    NULL AS isbn,
+                    condition_grade,
+                    selling_price,
+                    1 AS quantity,
+                    section
+                FROM second_hand_copies
+                WHERE id = :id
+                  AND status = "Available"
+                '
+            );
+        } else {
+            return null;
+        }
+
+        $statement->execute([
+            'id' => $id,
+        ]);
+
+        $book = $statement->fetch();
+
+        return $book === false ? null : $book;
+    }
+
+    /**
+     * Return all available book sections.
      */
     public function getSections(): array
     {

@@ -25,7 +25,8 @@ if (
     is_numeric($maximumPriceInput) &&
     (float) $maximumPriceInput >= 0
 ) {
-    $maximumPrice = (float) $maximumPriceInput;
+    $maximumPrice =
+        (float) $maximumPriceInput;
 }
 
 $books = $galleryRepository->searchBooks(
@@ -40,14 +41,24 @@ $sections = $galleryRepository->getSections();
 ?>
 
 <section class="page-heading">
-    <p class="eyebrow">Bellbird Books catalogue</p>
+    <p class="eyebrow">
+        Bellbird Books catalogue
+    </p>
 
     <h1>Book Gallery</h1>
 
     <p>
         Browse available new and second-hand books.
-        Search and filter the collection to find a suitable book.
+        Search and filter the collection to find a
+        suitable book.
     </p>
+
+    <a
+        class="button"
+        href="index.php?page=cart"
+    >
+        View Cart (<?= $cart->count() ?>)
+    </a>
 </section>
 
 <section class="panel">
@@ -63,20 +74,28 @@ $sections = $galleryRepository->getSections();
         <div class="gallery-filter-grid">
             <label>
                 Title, author or ISBN
+
                 <input
                     type="search"
                     name="search"
-                    value="<?= Support::escape($search) ?>"
+                    value="<?= Support::escape(
+                        $search
+                    ) ?>"
                     placeholder="Search books"
                 >
             </label>
 
             <label>
                 Section
-                <select name="section">
-                    <option value="">All sections</option>
 
-                    <?php foreach ($sections as $bookSection): ?>
+                <select name="section">
+                    <option value="">
+                        All sections
+                    </option>
+
+                    <?php foreach (
+                        $sections as $bookSection
+                    ): ?>
                         <option
                             value="<?= Support::escape(
                                 $bookSection
@@ -95,8 +114,11 @@ $sections = $galleryRepository->getSections();
 
             <label>
                 Book type
+
                 <select name="stock_type">
-                    <option value="">All book types</option>
+                    <option value="">
+                        All book types
+                    </option>
 
                     <option
                         value="New"
@@ -120,6 +142,7 @@ $sections = $galleryRepository->getSections();
 
             <label>
                 Maximum price
+
                 <input
                     type="number"
                     name="maximum_price"
@@ -135,25 +158,27 @@ $sections = $galleryRepository->getSections();
 
         <div class="form-actions">
             <button type="submit">
-                Apply filters
+                Apply Filters
             </button>
 
             <a
                 class="button button-secondary"
                 href="index.php?page=gallery"
             >
-                Clear filters
+                Clear Filters
             </a>
         </div>
     </form>
 </section>
 
 <section class="gallery-summary">
-    <h2>Available books</h2>
+    <h2>Available Books</h2>
 
     <p>
         <?= count($books) ?>
-        <?= count($books) === 1 ? 'book' : 'books' ?>
+        <?= count($books) === 1
+            ? 'book'
+            : 'books' ?>
         found
     </p>
 </section>
@@ -221,6 +246,7 @@ $sections = $galleryRepository->getSections();
                     <dl class="book-information">
                         <div>
                             <dt>Section</dt>
+
                             <dd>
                                 <?= Support::escape(
                                     $book['section']
@@ -234,6 +260,7 @@ $sections = $galleryRepository->getSections();
                         ): ?>
                             <div>
                                 <dt>Condition</dt>
+
                                 <dd>
                                     <?= Support::escape(
                                         $book[
@@ -245,8 +272,11 @@ $sections = $galleryRepository->getSections();
                         <?php else: ?>
                             <div>
                                 <dt>Available</dt>
+
                                 <dd>
-                                    <?= (int) $book['quantity'] ?>
+                                    <?= (int) $book[
+                                        'quantity'
+                                    ] ?>
                                 </dd>
                             </div>
                         <?php endif; ?>
@@ -254,10 +284,79 @@ $sections = $galleryRepository->getSections();
 
                     <p class="book-price">
                         $<?= number_format(
-                            (float) $book['selling_price'],
+                            (float) $book[
+                                'selling_price'
+                            ],
                             2
                         ) ?>
                     </p>
+
+                    <form
+                        method="post"
+                        class="add-cart-form"
+                    >
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="<?= Support::escape(
+                                Support::csrfToken()
+                            ) ?>"
+                        >
+
+                        <input
+                            type="hidden"
+                            name="action"
+                            value="add_to_cart"
+                        >
+
+                        <input
+                            type="hidden"
+                            name="book_id"
+                            value="<?= (int) $book['id'] ?>"
+                        >
+
+                        <input
+                            type="hidden"
+                            name="stock_type"
+                            value="<?= Support::escape(
+                                $book['stock_type']
+                            ) ?>"
+                        >
+
+                        <?php if (
+                            $book['stock_type'] === 'New'
+                        ): ?>
+                            <label>
+                                Quantity
+
+                                <input
+                                    type="number"
+                                    name="quantity"
+                                    min="1"
+                                    max="<?= (int) $book[
+                                        'quantity'
+                                    ] ?>"
+                                    value="1"
+                                    required
+                                >
+                            </label>
+                        <?php else: ?>
+                            <input
+                                type="hidden"
+                                name="quantity"
+                                value="1"
+                            >
+
+                            <p class="field-help">
+                                One unique second-hand copy
+                                is available.
+                            </p>
+                        <?php endif; ?>
+
+                        <button type="submit">
+                            Add to Cart
+                        </button>
+                    </form>
                 </div>
             </article>
         <?php endforeach; ?>
