@@ -212,12 +212,19 @@ $cartTotal = $cart->total($cartItems);
     </section>
 
     <section class="panel checkout-notice">
-        <h2>Ready for payment?</h2>
+        <h2>Ready to Checkout?</h2>
 
         <p>
-            The secure sandbox checkout will be added in
-            the next development phase.
+            Continue to the demonstration payment portal.
+            No real card or banking details are required.
         </p>
+
+        <a
+            class="button"
+            href="index.php?page=checkout"
+        >
+            Proceed to Checkout
+        </a>
     </section>
 
     <section class="panel">

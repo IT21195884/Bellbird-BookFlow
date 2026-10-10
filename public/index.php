@@ -6,6 +6,7 @@ require dirname(__DIR__) . '/bootstrap.php';
 
 use Bellbird\AuthRepository;
 use Bellbird\Cart;
+use Bellbird\CheckoutRepository;
 use Bellbird\CustomerOrderRepository;
 use Bellbird\Database;
 use Bellbird\GalleryRepository;
@@ -22,6 +23,10 @@ Database::initialise(
 $authRepository = new AuthRepository($pdo);
 $galleryRepository = new GalleryRepository($pdo);
 $cart = new Cart();
+
+$checkoutRepository =
+    new CheckoutRepository($pdo);
+
 $stockRepository = new StockRepository($pdo);
 
 $customerOrderRepository =
@@ -105,7 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     /*
-     * PUBLIC SHOPPING CART ACTIONS
+     * PUBLIC SHOPPING CART AND CHECKOUT ACTIONS
      */
 
     elseif ($action === 'add_to_cart') {
@@ -218,6 +223,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         );
 
         Support::redirect('cart');
+    } elseif ($action === 'process_checkout') {
+        $cartItems =
+            $cart->getItems($galleryRepository);
+
+        $errors =
+            CheckoutRepository::validateCheckout(
+                $_POST
+            );
+
+        if ($cartItems === []) {
+            $errors[] =
+                'Your cart is empty.';
+        }
+
+        if (
+            $errors === [] &&
+            $_POST['payment_test_result'] ===
+            'Declined'
+        ) {
+            $errors[] =
+                'The demonstration payment was declined. No order was created and your cart was not changed.';
+        }
+
+        if ($errors === []) {
+            try {
+                $orderReference =
+                    $checkoutRepository
+                        ->createApprovedOrder(
+                            $_POST,
+                            $cartItems
+                        );
+
+                $_SESSION[
+                    'completed_order_reference'
+                ] = $orderReference;
+
+                $cart->clear();
+
+                Support::setMessage(
+                    'success',
+                    'Payment approved and order recorded successfully.'
+                );
+
+                Support::redirect('checkout-success');
+            } catch (Throwable $exception) {
+                $errors[] = $exception->getMessage();
+            }
+        }
+
+        $page = 'checkout';
     }
 
     /*
@@ -601,6 +656,8 @@ $allowedPages = [
     'orders',
     'gallery',
     'cart',
+    'checkout',
+    'checkout-success',
     'login',
     'register',
 ];
@@ -608,9 +665,12 @@ $allowedPages = [
 /*
  * These pages do not require administrator login.
  */
+
 $publicPages = [
     'gallery',
     'cart',
+    'checkout',
+    'checkout-success',
     'login',
     'register',
 ];
@@ -619,6 +679,7 @@ $publicPages = [
  * Logged-in administrators are redirected away
  * from login and registration pages only.
  */
+
 $authenticationPages = [
     'login',
     'register',
@@ -632,6 +693,7 @@ if (!in_array($page, $allowedPages, true)) {
 /*
  * Protect internal management pages.
  */
+
 if (
     $page !== '404' &&
     !in_array($page, $publicPages, true) &&
@@ -646,9 +708,10 @@ if (
 }
 
 /*
- * Logged-in administrators can access the gallery
- * and cart, but do not need authentication pages.
+ * Logged-in administrators can access public shopping
+ * pages, but do not need authentication pages.
  */
+
 if (
     in_array($page, $authenticationPages, true) &&
     Support::isAuthenticated()

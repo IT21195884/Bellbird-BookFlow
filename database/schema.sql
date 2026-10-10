@@ -160,3 +160,60 @@ ON customers(name);
 
 CREATE INDEX IF NOT EXISTS idx_order_title_status
 ON customer_orders(book_title, status);
+
+CREATE TABLE IF NOT EXISTS online_orders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    order_reference TEXT NOT NULL UNIQUE,
+    customer_name TEXT NOT NULL,
+    customer_email TEXT NOT NULL,
+    customer_phone TEXT,
+    fulfilment_method TEXT NOT NULL DEFAULT 'Store pickup'
+        CHECK (
+            fulfilment_method IN (
+                'Store pickup'
+            )
+        ),
+    total_amount REAL NOT NULL CHECK (
+        total_amount >= 0
+    ),
+    payment_status TEXT NOT NULL CHECK (
+        payment_status IN (
+            'Approved',
+            'Declined'
+        )
+    ),
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS online_order_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    online_order_id INTEGER NOT NULL,
+    stock_type TEXT NOT NULL CHECK (
+        stock_type IN (
+            'New',
+            'Second-hand'
+        )
+    ),
+    stock_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    author TEXT NOT NULL,
+    quantity INTEGER NOT NULL CHECK (
+        quantity > 0
+    ),
+    unit_price REAL NOT NULL CHECK (
+        unit_price >= 0
+    ),
+    line_total REAL NOT NULL CHECK (
+        line_total >= 0
+    ),
+
+    FOREIGN KEY (online_order_id)
+        REFERENCES online_orders(id)
+        ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_online_order_reference
+ON online_orders(order_reference);
+
+CREATE INDEX IF NOT EXISTS idx_online_order_item_order
+ON online_order_items(online_order_id);
