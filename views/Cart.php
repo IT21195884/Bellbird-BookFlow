@@ -215,8 +215,8 @@ $cartTotal = $cart->total($cartItems);
         <h2>Ready to Checkout?</h2>
 
         <p>
-            Continue to the demonstration payment portal.
-            No real card or banking details are required.
+            Continue to the payment portal.
+            Card or Banking details are required.
         </p>
 
         <a
