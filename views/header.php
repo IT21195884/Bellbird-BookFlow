@@ -25,14 +25,23 @@ $administrator = Support::administrator();
 
 <body>
 <header class="site-header">
-    <a class="brand" href="index.php">
+    <a
+        class="brand"
+        href="index.php?page=gallery"
+    >
         Bellbird BookFlow
     </a>
 
     <nav>
+        <!-- Public gallery link -->
+        <a href="index.php?page=gallery">
+            Book Gallery
+        </a>
+
         <?php if (
             Support::isAuthenticated()
         ): ?>
+            <!-- Administrator navigation -->
             <a href="index.php?page=dashboard">
                 Dashboard
             </a>
@@ -81,6 +90,7 @@ $administrator = Support::administrator();
                 </button>
             </form>
         <?php else: ?>
+            <!-- Visitor navigation -->
             <a href="index.php?page=login">
                 Login
             </a>
@@ -99,6 +109,8 @@ $administrator = Support::administrator();
                 $message['type']
             ) ?>"
         >
-            <?= Support::escape($message['text']) ?>
+            <?= Support::escape(
+                $message['text']
+            ) ?>
         </div>
     <?php endif; ?>

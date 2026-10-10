@@ -7,6 +7,7 @@ require dirname(__DIR__) . '/bootstrap.php';
 use Bellbird\AuthRepository;
 use Bellbird\CustomerOrderRepository;
 use Bellbird\Database;
+use Bellbird\GalleryRepository;
 use Bellbird\StockRepository;
 use Bellbird\Support;
 
@@ -18,7 +19,9 @@ Database::initialise(
 );
 
 $authRepository = new AuthRepository($pdo);
+$galleryRepository = new GalleryRepository($pdo);
 $stockRepository = new StockRepository($pdo);
+
 $customerOrderRepository =
     new CustomerOrderRepository($pdo);
 
@@ -99,8 +102,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         Support::redirect('login');
     } elseif (!Support::isAuthenticated()) {
         /*
-         * Prevent unauthenticated users from performing
-         * stock, customer or order actions.
+         * Stop unauthenticated users from performing
+         * stock, customer or order management actions.
          */
         Support::setMessage(
             'error',
@@ -473,11 +476,25 @@ $allowedPages = [
     'edit-second-hand',
     'customers',
     'orders',
+    'gallery',
     'login',
     'register',
 ];
 
+/*
+ * These pages can be accessed without administrator login.
+ */
 $publicPages = [
+    'gallery',
+    'login',
+    'register',
+];
+
+/*
+ * Logged-in administrators should be redirected away
+ * from only the login and registration pages.
+ */
+$authenticationPages = [
     'login',
     'register',
 ];
@@ -488,8 +505,7 @@ if (!in_array($page, $allowedPages, true)) {
 }
 
 /*
- * Redirect visitors to login when they try to open
- * a protected administration page.
+ * Protect administration pages.
  */
 if (
     $page !== '404' &&
@@ -505,11 +521,11 @@ if (
 }
 
 /*
- * Logged-in administrators do not need to see
- * login or registration pages.
+ * Logged-in administrators can access the gallery,
+ * but do not need login or registration pages.
  */
 if (
-    in_array($page, $publicPages, true) &&
+    in_array($page, $authenticationPages, true) &&
     Support::isAuthenticated()
 ) {
     Support::redirect('dashboard');
