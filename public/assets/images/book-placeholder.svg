@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="560" viewBox="0 0 400 560">
+    <rect width="400" height="560" fill="#183f2d"></rect>
+
+    <rect x="28" y="28" width="344" height="504" rx="12" fill="none" stroke="#d39a42" stroke-width="4"></rect>
+
+    <path d="M115 165 C165 145 200 170 200 210
+           C200 170 235 145 285 165
+           L285 350
+           C235 330 200 350 200 390
+           C200 350 165 330 115 350 Z" fill="none" stroke="#ffffff" stroke-width="10" stroke-linejoin="round"></path>
+
+    <text x="200" y="455" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="27" font-weight="bold">
+        BELLBIRD BOOKS
+    </text>
+
+    <text x="200" y="490" text-anchor="middle" fill="#d39a42" font-family="Arial, sans-serif" font-size="20">
+        BookFlow
+    </text>
+</svg>
