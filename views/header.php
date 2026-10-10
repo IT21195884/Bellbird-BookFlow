@@ -33,15 +33,17 @@ $administrator = Support::administrator();
     </a>
 
     <nav>
-        <!-- Public gallery link -->
         <a href="index.php?page=gallery">
             Book Gallery
+        </a>
+
+        <a href="index.php?page=cart">
+            Cart (<?= $cart->count() ?>)
         </a>
 
         <?php if (
             Support::isAuthenticated()
         ): ?>
-            <!-- Administrator navigation -->
             <a href="index.php?page=dashboard">
                 Dashboard
             </a>
@@ -90,7 +92,6 @@ $administrator = Support::administrator();
                 </button>
             </form>
         <?php else: ?>
-            <!-- Visitor navigation -->
             <a href="index.php?page=login">
                 Login
             </a>
