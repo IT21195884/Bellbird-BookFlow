@@ -19,6 +19,33 @@ Bellbird BookFlow aims to:
 
 ## Core Features
 
+### Administrator Authentication
+
+- Log in and log out of the administrator area.
+- Restrict stock and customer-order management to authenticated administrators.
+
+### Public Book Gallery
+
+- Browse available new and second-hand books.
+- Search by book title or author.
+- Filter by section, stock type and maximum price.
+- View book prices, availability and condition.
+  
+### Shopping Cart
+
+- Add available books to a session-based cart.
+- Update quantities or remove individual items.
+- View item subtotals and the overall total.
+- Clear all items from the cart.
+  
+### Checkout function with Add to cart feature
+
+- Enter customer and contact details.
+- Validate checkout information and stock availability.
+- Record the checkout order and update stock.
+- Display an order confirmation.
+- Complete checkout without processing real payments.
+
 ### New-Book Management
 
 - Add, view, update and remove new-book records.
@@ -104,7 +131,6 @@ The initial release does not include:
 - Online shopping
 - Loyalty programs
 - Automatic email or SMS notifications
-- Book photographs
 - Advanced reporting and analytics
 
 These features may be considered for future development.
@@ -125,16 +151,61 @@ The planned technology stack includes:
 ## Project Structure
 
 ```text
-bellbird-bookflow/
-├── app/
-│   ├── templates/
-│   ├── static/
-│   ├── models/
-│   └── routes/
-├── tests/
+Bellbird-BookFlow/
+├── .github/
+│   └── workflows/
+│       └── quality.yml
 ├── config/
+│   └── config.php
+├── database/
+│   └── schema.sql
+├── docs/
+│   ├── CONFIGURATION-GUIDE.md
+│   ├── INSTALLATION-GUIDE.md
+│   ├── RELEASE-NOTES-v1.0.0.md
+│   ├── TEST-PLAN.md
+│   ├── TEST-RESULTS.md
+│   └── USER-GUIDE.md
+├── public/
+│   ├── assets/
+│   │   ├── css/
+│   │   │   └── styles.css
+│   │   ├── images/
+│   │   │   └── book-placeholder.svg
+│   │   └── js/
+│   │       └── app.js
+│   └── index.php
+├── scripts/
+│   ├── init_db.php
+│   └── quality_check.php
+├── src/
+│   ├── AuthRepository.php
+│   ├── Cart.php
+│   ├── CheckoutRepository.php
+│   ├── CustomerOrderRepository.php
+│   ├── Database.php
+│   ├── GalleryRepository.php
+│   ├── StockRepository.php
+│   └── Support.php
+├── views/
+│   ├── 404.php
+│   ├── Cart.php
+│   ├── checkout-success.php
+│   ├── checkout.php
+│   ├── customers.php
+│   ├── dashboard.php
+│   ├── edit-new-book.php
+│   ├── edit-second-hand.php
+│   ├── footer.php
+│   ├── gallery.php
+│   ├── header.php
+│   ├── login.php
+│   ├── orders.php
+│   ├── register.php
+│   └── stock.php
 ├── .env.example
+├── .env.production.example
 ├── .gitignore
-├── requirements.txt
-├── README.md
-└── run.py
+├── bootstrap.php
+├── CHANGELOG.md
+└── README.md
